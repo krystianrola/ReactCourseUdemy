@@ -1,39 +1,21 @@
-import React, {useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
+import React, {Fragment} from "react";
 import BlogPost from "../components/BlogPost/BlogPost";
 import {getPost} from "../utils/api";
+import {LoaderFunctionArgs, Params, useLoaderData} from "react-router-dom";
 import {IPost} from "../utils/types";
 
-const PostDetails = () => {
-    const [error, setError] = useState<string>("");
-    const [post, setPost] = useState<IPost>();
-    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const params = useParams();
-    const { id } = params;
+export default function PostDetails() {
 
-    useEffect(() => {
-        async function loadPost() {
-            setIsLoading(true);
-            try {
-                const post = await getPost(Number(id));
-                setPost(post);
-            } catch (err) {
-                setError("");
-            }
-            setIsLoading(false);
-        }
-
-        loadPost();
-    }, [id]);
+    const post = useLoaderData() as IPost;
 
     return (
-        <>
-            {isLoading && <p>Loading post...</p>}
-            {error && <p>{error}</p>}
-            {!error && post && <BlogPost title={post.title} text={post.body} />}
-        </>
+        <Fragment>
+            <BlogPost title={post.title} text={post.body} />
+        </Fragment>
     );
 }
 
-export default PostDetails;
+export function loader({params} :LoaderFunctionArgs) {
+    return getPost(Number(params.id));
+}

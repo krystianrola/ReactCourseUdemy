@@ -1,16 +1,13 @@
 import React, {Fragment} from "react";
 import MainNav from "../MainNav/MainNav";
+import {Outlet} from "react-router-dom";
 
-interface RootLayoutProps{
-    children: JSX.Element;
-}
-
-const RootLayout = ({children} :RootLayoutProps) :JSX.Element => {
+const RootLayout = () :JSX.Element => {
     return(
         <Fragment>
             <MainNav />
             <main>
-                {children}
+                <Outlet />
             </main>
         </Fragment>
     )

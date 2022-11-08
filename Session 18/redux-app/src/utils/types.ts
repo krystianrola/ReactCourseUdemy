@@ -11,6 +11,6 @@ export interface ReduxAction {
     amount?: number
 }
 
- export interface IAuthSliceState {
+export interface IAuthSliceState {
     isAuthed: boolean
 }

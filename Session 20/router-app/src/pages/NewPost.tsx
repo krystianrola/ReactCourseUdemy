@@ -1,45 +1,54 @@
-import React, { useState } from "react";
+import React, {Fragment, useState} from "react";
 import NewPostForm from "../components/NewPostForm/NewPostForm";
-import {useNavigate} from "react-router-dom";
-import {savePost} from "../utils/api";
+import {ActionFunctionArgs, redirect, useActionData, useNavigate, useNavigation} from "react-router-dom";
 import {IPost} from "../utils/types";
+import {savePost} from "../utils/api";
 
-const NewPost = () => {
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const [error, setError] = useState<string>("");
+interface IError {
+    message: string;
+    status: number
+}
+
+export default function NewPost (){
     const navigate = useNavigate();
+    const data = useActionData() as IError;
+    const navigation = useNavigation();
 
-    async function submitHandler(event: any) {
-        event.preventDefault();
-        setIsSubmitting(true);
-        try {
-            const formData = new FormData(event.target);
-            const post :IPost = {
-                title: formData.get('title') as string,
-                body: formData.get('post-text') as string,
-            };
-            await savePost(post);
-            navigate('/');
-        } catch (err) {
-            setError("err");
-        }
-        setIsSubmitting(false);
-    }
 
     function cancelHandler() {
         navigate('/blog');
     }
 
     return (
-        <>
-            {error && <p>{error}</p>}
+        <Fragment>
+            {data && data.status && <p>{data.message}</p>}
             <NewPostForm
                 onCancel={cancelHandler}
-                onSubmit={submitHandler}
-                submitting={isSubmitting}
+                submitting={navigation.state === "submitting"}
             />
-        </>
+        </Fragment>
     );
 }
 
-export default NewPost;
+export async function action({request}: ActionFunctionArgs){
+    const form = await request.formData();
+    const post :IPost = {
+        title: form.get("title") as string || "undefined",
+        body: form.get("post-text") as string || "undefined"
+    }
+
+    try {
+        await savePost(post);
+    }catch (_error) {
+        let error = _error as IError ;
+        if (error.status === 422){
+            // you can return the error as action data
+            // for example to display the error on screen for input error
+            // and not redirect and lose the inputs values
+            return error;
+        }
+        throw error;
+    }
+
+    return redirect("/blog")
+}
